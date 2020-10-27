@@ -1,6 +1,5 @@
-###### Data Engineering Nanodegree
-## Project 1 Data Modeling with Postgres
-###### Author Yvette.H | Date 2020-10-25
+###### Data Engineering Nanodegree Project 1
+## Data Modeling with Postgres
 
 ## Project description
 In this project, we collect data on songs and user activity logs from the startup Sparkify's music streaming app.
