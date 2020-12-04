@@ -15,16 +15,16 @@ default_args = {
     'owner': 'shell845',
     'depends_on_past': False,
     'start_date': datetime(2018, 11, 1),
-    'end_date': datetime(2018, 11, 2),
-    'retries': 1, # set to 3 for submission
-    'retry_delay': timedelta(minutes=5),
-    'email_on_retry': False,
+    'end_date': datetime(2018, 11, 1),
+    # 'retries': 3,
+    # 'retry_delay': timedelta(minutes=5),
+    'email_on_retry': False
 }
 
 dag = DAG('sparkify_dag',
           default_args=default_args,
           description='Load and transform data in Redshift with Airflow',
-          schedule_interval='0 0 * * *' # corn format for daily
+          # schedule_interval='0 0 * * *' # corn format for daily
         )
 
 start_operator = DummyOperator(task_id='Begin_execution',  dag=dag)
@@ -64,7 +64,10 @@ stage_songs_to_redshift = StageToRedshiftOperator(
 
 load_songplays_table = LoadFactOperator(
     task_id='Load_songplays_fact_table',
-    dag=dag
+    dag=dag,
+    redshift_conn_id="redshift",
+    table="songplays",
+    provide_context=True,
 )
 
 load_user_dimension_table = LoadDimensionOperator(

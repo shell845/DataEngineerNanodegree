@@ -18,16 +18,6 @@ class StageToRedshiftOperator(BaseOperator):
             {} 'auto ignorecase' 
             {}
         """
-    
-    template_fields = ("s3_key",)
-    copy_sql = """
-        COPY {}
-        FROM '{}'
-        ACCESS_KEY_ID '{}'
-        SECRET_ACCESS_KEY '{}'
-        IGNOREHEADER {}
-        DELIMITER '{}'
-    """
 
     @apply_defaults
     def __init__(self,
@@ -49,7 +39,6 @@ class StageToRedshiftOperator(BaseOperator):
         self.s3_key = s3_key
         self.s3_region = s3_region
         self.file_format = file_format
-        self.execution_date = kwargs.get('execution_date')
 
     def execute(self, context):
         '''
@@ -74,18 +63,8 @@ class StageToRedshiftOperator(BaseOperator):
         redshift.run('DELETE FROM {}'.format(self.table))
         
         self.log.info(f'StageToRedshiftOperator - compose S3 path')
-        # S3 URI sample: s3://udacity-dend/log_data/2018/11/2018-11-01-events.json
-        s3_path = "s3://{}/{}".format(self.s3_bucket, self.s3_key)
-        if self.execution_date:
-            year = self.execution_date.strftime("%Y")  # convert year to string
-            month = self.execution_date.strftime("%m") # convert month to string
-            # day = self.execution_date.strftime("%d")   # convert day to string
-            s3_path = '/'.join([s3_path, str(year), str(month)])  # compose S3 path
-        # s3_file = f'/*.{self.file_format}'   # compose S3 file name
-        ''' testing - remove before submission'''
-        s3_file = f'/2018-11-01-events.{self.file_format}'
-        ''' end testing'''
-        s3_path = s3_path + s3_file           # append s3 key
+        rendered_key = self.s3_key.format(**context)
+        s3_path = "s3://{}/{}".format(self.s3_bucket, rendered_key)
 
         # for csv files only
         convert_csv=""
