@@ -1,39 +1,65 @@
 from datetime import datetime, timedelta
 import os
 from airflow import DAG
+from airflow.operators.postgres_operator import PostgresOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators import (StageToRedshiftOperator, LoadFactOperator,
                                 LoadDimensionOperator, DataQualityOperator)
-from helpers import SqlQueries
+
+from helpers import SqlQueries 
 
 # AWS_KEY = os.environ.get('AWS_KEY')
 # AWS_SECRET = os.environ.get('AWS_SECRET')
 
 default_args = {
-    'owner': 'udacity',
+    'owner': 'shell845',
     'depends_on_past': False,
-    'start_date': datetime(2019, 1, 12),
-    'retries': 3,
+    'start_date': datetime(2018, 11, 1),
+    'end_date': datetime(2018, 11, 2),
+    'retries': 1, # set to 3 for submission
     'retry_delay': timedelta(minutes=5),
     'email_on_retry': False,
 }
 
-dag = DAG('udac_example_dag',
+dag = DAG('sparkify_dag',
           default_args=default_args,
           description='Load and transform data in Redshift with Airflow',
-          schedule_interval='0 * * * *'
+          schedule_interval='0 0 * * *' # corn format for daily
         )
 
 start_operator = DummyOperator(task_id='Begin_execution',  dag=dag)
 
+create_tables_task = PostgresOperator(
+  task_id="create_tables",
+  dag=dag,
+  sql='create_tables.sql',
+  postgres_conn_id="redshift"
+)
+
 stage_events_to_redshift = StageToRedshiftOperator(
     task_id='Stage_events',
-    dag=dag
+    dag=dag,
+    redshift_conn_id='redshift',
+    aws_credentials_id='aws_credentials',
+    table='staging_events',
+    s3_bucket='udacity-dend',
+    s3_key='log_data',
+    s3_region='us-west-2',
+    file_format='JSON',
+    provide_context=True
 )
 
 stage_songs_to_redshift = StageToRedshiftOperator(
     task_id='Stage_songs',
-    dag=dag
+    dag=dag,
+    redshift_conn_id='redshift',
+    aws_credentials_id='aws_credentials',
+    table='staging_songs',
+    s3_bucket='udacity-dend',
+    s3_key='song_data',
+    s3_region='us-west-2',
+    file_format='JSON',
+    provide_context=True
 )
 
 load_songplays_table = LoadFactOperator(
@@ -68,8 +94,9 @@ run_quality_checks = DataQualityOperator(
 
 end_operator = DummyOperator(task_id='Stop_execution',  dag=dag)
 
-start_operator >> stage_events_to_redshift
-start_operator >> stage_songs_to_redshift
+start_operator >> create_tables_task
+create_tables_task >> stage_events_to_redshift
+create_tables_task >> stage_songs_to_redshift
 stage_events_to_redshift >> load_songplays_table
 stage_songs_to_redshift >> load_songplays_table
 load_songplays_table >> load_user_dimension_table
