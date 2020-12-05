@@ -2,7 +2,7 @@
 # Airflow
 
 ## Project summary
-In this project, we use Airflow to manage ELT pipeline:
+In this project, we use Airflow with customised operators to manage ELT pipeline:
 1. Load data files from S3 to Redshift staging tables.
 2. Transform data in staging tables and load into fact and dimension tables in Redshift.
 3. Conduct data quality check.
