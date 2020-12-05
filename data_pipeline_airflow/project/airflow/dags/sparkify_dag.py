@@ -132,21 +132,12 @@ end_operator = DummyOperator(task_id='Stop_execution',  dag=dag)
 #   sql='drop_tables.sql',
 #   postgres_conn_id="redshift"
 # )
-#
-# end_operator >> drop_tables_task
 
 
 start_operator >> create_tables_task
-create_tables_task >> stage_events_to_redshift
-create_tables_task >> stage_songs_to_redshift
-stage_events_to_redshift >> load_songplays_table
-stage_songs_to_redshift >> load_songplays_table
-load_songplays_table >> load_user_dimension_table
-load_songplays_table >> load_song_dimension_table
-load_songplays_table >> load_artist_dimension_table
-load_songplays_table >> load_time_dimension_table
-load_user_dimension_table >> run_quality_checks
-load_song_dimension_table >> run_quality_checks
-load_artist_dimension_table >> run_quality_checks
-load_time_dimension_table >> run_quality_checks
+create_tables_task >> [stage_events_to_redshift, stage_songs_to_redshift] >> load_songplays_table
+load_songplays_table >> [load_user_dimension_table, load_song_dimension_table, load_artist_dimension_table, load_time_dimension_table] >> run_quality_checks
 run_quality_checks >> end_operator
+
+# Uncomment below if need drop tables
+# end_operator >> drop_tables_task

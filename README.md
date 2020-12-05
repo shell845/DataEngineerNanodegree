@@ -1,4 +1,5 @@
-#### Udacity Data Engineering Nanodegree
+## Udacity Data Engineering Nanodegree
+[Course website](https://www.udacity.com/course/data-engineer-nanodegree--nd027)
 
 ## Syllabus
 ### Lesson 1 - Data Modeling
@@ -24,4 +25,7 @@ Understand the big data ecosystem and how to use Spark to work with massive data
 Schedule, automate, and monitor data pipelines using Apache Airflow. Run data quality checks, track data lineage, and work with data pipelines in production.
 
 - Project: DATA PIPELINES WITH AIRFLOW
+
+### Capstone project
+Combine what you've learned throughout the program to build your own data engineering portfolio project.
 
